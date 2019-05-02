@@ -1,26 +1,13 @@
+const auth = require('..//moddleware/auth')
 const express = require('express');
 const User = require('../models/user');
 
 const router = new express.Router();
 
 
-router.get('/users',async (req,res) => {
+router.get('/users/me',auth,async (req,res) => {
 
-    try {
-const users = await User.find({})
-res.status(201).send(users)
-    }
-    catch(e){
-res.status(400).send(e);
-    }
-
-
-    // User.find({}).then((data)=>{
-    //     res.status(200).send(data)
-    // }).catch((err)=>{
-    //     res.status(400).send(err)
-    // })
-
+    res.send(req.user)
 })
 
 router.get('/users/:id', async (req,res) => {
