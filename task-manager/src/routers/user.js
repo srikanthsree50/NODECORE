@@ -1,6 +1,7 @@
 const auth = require('..//moddleware/auth')
 const express = require('express');
 const User = require('../models/user');
+const multer = require('multer');
 
 const router = new express.Router();
 
@@ -99,12 +100,6 @@ catch(e){
 res.status(404).send(e)
 }
 
-    // User.findById(_id).then((data)=>{
-    //     res.status(200).send(data)
-    // }).catch((err)=>{
-    //     res.status(400).send(err)
-    // })
-
 })
 
 router.delete('/users/me', auth , async (req,res) => {
@@ -118,6 +113,57 @@ router.delete('/users/me', auth , async (req,res) => {
     res.status(500).send(e)
     }
 })    
+
+
+
+const upload = multer({
+    limits:{
+        fileSize:1000000
+    },
+    fileFilter(req,file,cb)
+    {
+    if(!file.originalname.match(/\.(jpg|jpeg|png)$/))
+    {
+  return  cb(new Error('invalid file format upload Jpg Jpeg or Pngs only'))
+    }
+
+ cb(undefined,true)
+
+    }
+ })
+ 
+ router.post('/users/me/upload', auth ,upload.single('upload'), async (req,res) => {
+  
+  req.user.upload = req.file.buffer
+  await req.user.save()
+    res.send()
+}, (error,req,res,next) => {
+    res.status(400).send({error:error.message})
+})
+
+router.delete('/users/me/upload' , auth ,async (req,res) => {
+req.user.upload = undefined
+await req.user.save()
+res.send()
+})
+
+
+
+router.get('/users/:id/upload',async (req,res) => {
+    try{
+
+ const user = await User.findById(req.params.id)
+
+if(!user | !user.upload){
+    throw new Error()
+}
+res.set('Content-Type','image/jpg')
+res.send(user.upload)
+    }
+    catch(e){
+        res.status(404).send()
+    }
+})
 
 
 
