@@ -2,6 +2,7 @@ const auth = require('..//moddleware/auth')
 const express = require('express');
 const User = require('../models/user');
 const multer = require('multer');
+const { sendWelcomeEmail,sendCancelationEmail }= require('../emails/account')
 
 const router = new express.Router();
 
@@ -20,20 +21,15 @@ router.post('/users', async (req,res) => {
    {
   
   await user.save()
-
+ sendWelcomeEmail(user.email,user.name)
   const token = await user.generateAuthToken()
 
   res.status(200).send({user,token})
+  
   }
   catch(e) {
   res.status(400).send(e)
   }
-  
-  //    user.save().then((data) => {
-  //        res.status(200).send(data)
-  //    }).catch((err) => {
-  //        res.status(400).send(err)
-  //    })
   
   })
   
@@ -107,6 +103,7 @@ router.delete('/users/me', auth , async (req,res) => {
     try {
     
     await req.user.remove()
+    sendCancelationEmail(req.user.email,req.user.name)
     res.send(req.user)
     }
     catch(e){
